@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Accueil - Plateforme Sociale Académique{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styles pour rendre la carte d'accueil beaucoup plus grande et plus accueillante */
+    .card {
+        background: #e8f0ff; /* Arrière-plan doux */
+        border: none;
+        border-radius: 18px; /* Bords arrondis */
+        box-shadow: 0 10px 30px rgba(83, 109, 253, 0.15); /* Ombre légère */
+        text-align: center;
+        margin: 50px auto;
+        padding: 80px 40px; /* **GRANDE AUGMENTATION DU REMBOURRAGE** */
+        max-width: 900px; /* Assurez-vous qu'elle est large au centre */
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(83, 109, 253, 0.25);
+    }
+
+    .card-header {
+        margin-bottom: 30px;
+    }
+
+    .card-title {
+        color: #3949ab;
+        font-size: 3.5rem; /* **TRÈS GRAND TITRE** */
+        font-weight: 800;
+        margin-bottom: 10px;
+        letter-spacing: 1.5px;
+    }
+
+    .card p {
+        font-size: 1.3rem; /* **TEXTE PLUS GRAND** */
+        color: #536dfd;
+        margin-bottom: 40px;
+        line-height: 1.6;
+    }
+
+    /* Styles pour les boutons (doivent correspondre aux classes utilisées : .btn-success et .btn-secondary) */
+    .btn {
+        display: inline-block;
+        font-weight: 600;
+        padding: 15px 35px; /* **PLUS GRAND REMBOURRAGE DES BOUTONS** */
+        border-radius: 10px;
+        text-transform: uppercase;
+        font-size: 1.1rem; /* **TEXTE DES BOUTONS PLUS GRAND** */
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 0 10px;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background-color: #4caf50;
+        color: white;
+        border: 2px solid #4caf50;
+    }
+
+    .btn-secondary {
+        background-color: transparent;
+        color: #536dfd;
+        border: 2px solid #536dfd;
+    }
+
+    .btn-success:hover {
+        background-color: #388e3c;
+        border-color: #388e3c;
+    }
+
+    .btn-secondary:hover {
+        background-color: #536dfd;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Bienvenue sur ResearchPlatform</h1>
+    </div>
+    <p>Plateforme sociale pour chercheurs académiques. Partagez vos recherches, rejoignez des groupes, et connectez-vous avec d'autres chercheurs.</p>
+
+    {% if not user.is_authenticated %}
+    <div style="margin-top: 2rem;">
+        <a href="{% url 'users:signup' %}" class="btn btn-success">Créer un compte</a>
+        <a href="{% url 'users:login' %}" class="btn btn-secondary">Se connecter</a>
+    </div>
+    {% else %}
+    <div style="margin-top: 2rem;">
+        <a href="{% url 'publications:list' %}" class="btn btn-success">Voir les publications</a>
+        <a href="{% url 'groups:list' %}" class="btn btn-success">Explorer les groupes</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

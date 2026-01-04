@@ -1,0 +1,48 @@
+<div style="position: relative; display: inline-block;">
+  <button id="notification-btn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; position: relative;">
+    🔔
+    {% if unread_count %}
+    <span style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">
+      {{ unread_count }}
+    </span>
+    {% endif %}
+  </button>
+
+  <div id="notification-menu" style="display: none; position: absolute; top: 40px; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 350px; max-height: 400px; overflow-y: auto; z-index: 1000;">
+    {% if notifications %}
+      {% for notif in notifications %}
+      <a href="{{ notif.action_url }}" style="display: block; padding: 1rem; border-bottom: 1px solid #ecf0f1; text-decoration: none; color: inherit; transition: all 0.3s ease; background: {% if notif.is_read %}white{% else %}#f0f4f8{% endif %};">
+        <div style="font-weight: {% if notif.is_read %}normal{% else %}bold{% endif %}; color: #2c3e50;">
+          {{ notif.title }}
+        </div>
+        <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #7f8c8d;">
+          {{ notif.message }}
+        </p>
+        <span style="font-size: 0.75rem; color: #95a5a6;">
+          {{ notif.created_at|timesince }} ago
+        </span>
+      </a>
+      {% endfor %}
+    {% else %}
+      <div style="padding: 1rem; text-align: center; color: #7f8c8d;">
+        Aucune notification
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.getElementById('notification-btn').addEventListener('click', function() {
+    const menu = document.getElementById('notification-menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener('click', function(e) {
+    const btn = document.getElementById('notification-btn');
+    const menu = document.getElementById('notification-menu');
+    if (!btn.contains(e.target) && !menu.contains(e.target)) {
+      menu.style.display = 'none';
+    }
+  });
+</script>

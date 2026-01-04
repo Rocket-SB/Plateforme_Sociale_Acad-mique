@@ -1,0 +1,16 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Confirmer le refus de l'invitation{% endblock %}
+
+{% block content %}
+<h1>Refuser l'invitation pour {{ group.name }}</h1>
+
+<p>Voulez-vous vraiment refuser l'invitation envoyée à {{ invitation.email }} ?</p>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Refuser</button>
+  <a href="{% url 'groups:invitations_list' group.id %}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}

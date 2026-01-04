@@ -1,0 +1,77 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ajouter une citation{% endblock %}
+
+{% block content %}
+<div class="add-citation-container">
+    <div class="add-citation-header">
+        <h1><i class="fas fa-quote-left"></i> Ajouter une citation</h1>
+        <a href="{% url 'publications:detail' publication.pk %}" class="btn btn-light">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <div class="publication-info-box card">
+        <h2 class="card-title">{{ publication.title }}</h2>
+        <p class="card-subtitle mb-2 text-muted">Sélectionnez une publication que vous avez utilisée dans votre recherche.</p>
+    </div>
+
+    <form method="post" class="add-citation-form card">
+        {% csrf_token %}
+
+        <div class="search-box-container form-group">
+            <input type="text" id="search-box" class="form-control" placeholder="🔍 Rechercher une publication...">
+        </div>
+
+        <div class="publications-list-container">
+            {% for pub in available_publications %}
+            <div class="publication-item {% if pub.id in cited_ids %}cited{% endif %}" data-title="{{ pub.title|lower }}" data-authors="{% for author in pub.authors.all %}{{ author.get_full_name|lower }} {% endfor %}">
+                <label>
+                    <input type="radio" name="cited_publication" value="{{ pub.id }}" {% if pub.id in cited_ids %}disabled{% endif %} required>
+                    <div class="publication-details">
+                        <strong class="publication-title">{{ pub.title }}</strong>
+                        <span class="publication-authors">
+                            {% for author in pub.authors.all|slice:":2" %}
+                                {{ author.get_full_name|default:author.username }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                            {% if pub.authors.count > 2 %} et {{ pub.authors.count|add:"-2" }} autre{{ pub.authors.count|add:"-2"|pluralize }}{% endif %}
+                        </span>
+                        <span class="publication-meta">
+                            {% if pub.journal %}📰 {{ pub.journal }} • {% endif %}
+                            📅 {{ pub.publication_date|date:"Y"|default:"N/A" }}
+                        </span>
+                        {% if pub.id in cited_ids %}
+                        <span class="cited-badge">✅ Déjà citée</span>
+                        {% endif %}
+                    </div>
+                </label>
+            </div>
+            {% empty %}
+            <p class="empty-publications-list">Aucune publication disponible.</p>
+            {% endfor %}
+        </div>
+
+        <div class="citation-note-container form-group">
+            <label for="citation_text">
+                Note (optionnel)
+            </label>
+            <textarea name="citation_text" id="citation_text" rows="3" class="form-control" placeholder="Pourquoi avez-vous cité cette publication?"></textarea>
+        </div>
+
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check"></i> Ajouter la citation
+            </button>
+            <a href="{% url 'publications:detail' publication.pk %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/add_citation.js' %}" defer></script>
+{% endblock %}

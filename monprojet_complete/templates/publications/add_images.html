@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ajouter des images - {{ publication.title }}{% endblock %}
+
+{% block content %}
+<div class="add-images-container">
+  <div class="add-images-header">
+    <h1>🖼️ Ajouter des images</h1>
+    <a href="{% url 'publications:detail' publication.pk %}" class="btn btn-light">
+      <i class="fas fa-arrow-left"></i> Retour
+    </a>
+  </div>
+
+  <div class="publication-info-box card">
+    <h2 class="card-title">{{ publication.title }}</h2>
+    <p class="card-subtitle mb-2 text-muted">Ajoutez des images, graphiques, ou diagrammes à votre publication</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="imageForm" class="card">
+    {% csrf_token %}
+
+    <div id="dropZone">
+      <input type="file" name="images" id="imageInput" multiple accept="image/*" style="display: none;">
+      <div class="drop-zone-icon">📸</div>
+      <p class="drop-zone-text-main">Cliquez pour sélectionner ou glissez-déposez des images</p>
+      <p class="drop-zone-text-secondary">JPG, PNG, GIF jusqu'à 10MB par image</p>
+    </div>
+
+    <div id="previewArea"></div>
+
+    <div class="form-buttons">
+      <button type="submit" id="submitBtn" class="btn btn-success" disabled>
+        ✅ Ajouter les images
+      </button>
+      <a href="{% url 'publications:detail' publication.pk %}" class="btn btn-secondary">
+        ❌ Annuler
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/add_images.js' %}" defer></script>
+{% endblock %}

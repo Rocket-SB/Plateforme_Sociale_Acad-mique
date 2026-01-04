@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmer l'acceptation de l'invitation{% endblock %}
+
+{% block content %}
+<h1>Accepter l'invitation pour {{ group.name }}</h1>
+
+<p>Voulez-vous accepter l'invitation envoyée à {{ invitation.email }} ?</p>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-success">Accepter</button>
+  <a href="{% url 'groups:invitations_list' group.id %}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}

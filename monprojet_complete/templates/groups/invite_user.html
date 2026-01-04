@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Inviter des utilisateurs - {{ group.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1 style="margin: 0; font-size: 2rem; color: #2c3e50;">📧 Inviter des utilisateurs</h1>
+    <a href="{% url 'groups:admin' group.id %}" style="background: #667eea; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+      🔙 Retour
+    </a>
+  </div>
+
+  <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <h2 style="margin-top: 0; color: #2c3e50;">{{ group.name }}</h2>
+    <p style="color: #7f8c8d; margin-bottom: 1.5rem;">Sélectionnez un utilisateur à inviter à ce groupe</p>
+
+    {% if available_users %}
+    <form method="post">
+      {% csrf_token %}
+      
+      <div style="margin-bottom: 1.5rem;">
+        <label for="user_id" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c3e50;">
+          Utilisateur à inviter
+        </label>
+        <select name="user_id" id="user_id" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+          <option value="">-- Sélectionnez un utilisateur --</option>
+          {% for user in available_users %}
+          <option value="{{ user.id }}">
+            {{ user.get_full_name|default:user.username }} (@{{ user.username }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 1rem;">
+        <button type="submit" style="flex: 1; background: #28a745; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">
+          ✅ Envoyer l'invitation
+        </button>
+        <a href="{% url 'groups:admin' group.id %}" style="flex: 1; background: #6c757d; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; transition: all 0.3s ease;">
+          ❌ Annuler
+        </a>
+      </div>
+    </form>
+    {% else %}
+    <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 8px;">
+      <div style="font-size: 2rem; margin-bottom: 1rem;">👥</div>
+      <p style="color: #7f8c8d; margin: 0;">Tous les utilisateurs sont déjà membres de ce groupe ou l'invitation a été envoyée.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+</style>
+{% endblock %}

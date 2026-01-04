@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Nouveau message - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="new-message-container">
+    <div class="new-message-header">
+        <a href="{% url 'messaging:chat' %}" class="back-button">&larr;</a>
+        <h1 class="card-title">Nouveau message</h1>
+    </div>
+
+    <div class="info-box">
+        <p>ℹ️ Vous pouvez seulement envoyer des messages aux personnes avec qui vous avez une relation mutuelle (vous vous suivez mutuellement).</p>
+    </div>
+
+    <div class="user-list">
+        {% if users %}
+            {% for u in users %}
+            <div class="user-item">
+                <div class="user-info">
+                    <div class="chat-avatar">
+                        {% if u.profile_picture %}
+                            <img src="{{ u.profile_picture.url }}" alt="{{ u.username }}">
+                        {% else %}
+                            <div class="avatar-fallback">
+                                {{ u.username|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="user-details">
+                        <a href="{% url 'users:profile' u.pk %}">
+                            <strong>{{ u.full_name|default:u.username }}</strong>
+                        </a>
+                        <span>@{{ u.username }}</span>
+                        {% if u.institution %}
+                            <small>{{ u.institution }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{% url 'messaging:new' u.pk %}" class="btn btn-sm btn-success start-chat-btn">Contacter</a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="icon">👥</div>
+                <h3>Aucune connexion mutuelle</h3>
+                <p>Pour envoyer des messages, vous devez vous suivre mutuellement.</p>
+                <a href="{% url 'users:home' %}" class="btn btn-primary">Découvrir des utilisateurs</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.new-message-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.new-message-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: #00a884;
+    color: white;
+    flex-shrink: 0;
+}
+
+.new-message-header .card-title {
+    color: white;
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.back-button {
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    text-decoration: none;
+}
+
+.info-box {
+    background-color: #e6f7ff;
+    color: #005f87;
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #b3e0ff;
+    flex-shrink: 0;
+}
+.info-box p { margin: 0; }
+
+.user-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.3s;
+}
+
+.user-item:hover {
+    background-color: #f5f5f5;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.chat-avatar img, .chat-avatar .avatar-fallback {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-avatar .avatar-fallback {
+    background: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-details a { text-decoration: none; }
+.user-details strong { font-size: 1rem; color: #333; }
+.user-details span { font-size: 0.9rem; color: #777; }
+.user-details small { font-size: 0.8rem; color: #999; }
+
+.start-chat-btn {
+    border-radius: 20px;
+    font-size: 0.85rem;
+    padding: 0.4rem 1rem;
+    background-color: #075e54;
+    border: none;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    margin: auto;
+}
+
+.empty-state .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.empty-state h3 {
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #777;
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

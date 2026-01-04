@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <section class="search-results">
+    <h1>🔍 Résultats de recherche pour <span class="highlight">"{{ query }}"</span></h1>
+
+    <!-- Users Section -->
+    <section class="result-section">
+      <h2>👤 Utilisateurs trouvés ({{ users.count }})</h2>
+      {% if users %}
+        <ul class="result-list users-list">
+          {% for user in users %}
+            <li class="user-item">
+              <a href="{% url 'users:profile' user.pk %}" class="result-link user-link">
+                {% if user.profile_picture %}
+                  <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="user-avatar">
+                {% else %}
+                  <div class="user-avatar-fallback">
+                    {{ user.username|first|upper }}
+                  </div>
+                {% endif %}
+                <div class="user-info">
+                  <strong>{{ user.get_full_name|default:user.username }}</strong>
+                  <span class="username">@{{ user.username }}</span>
+                  {% if user.institution %}
+                    <span class="institution">🏛️ {{ user.institution }}</span>
+                  {% endif %}
+                  {% if user.bio %}
+                    <span class="bio">{{ user.bio|truncatewords:15 }}</span>
+                  {% endif %}
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">👤</div>
+          <p class="no-results">Aucun utilisateur trouvé.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Groups Section -->
+    <section class="result-section">
+      <h2>👥 Groupes trouvés ({{ groups.count }})</h2>
+      {% if groups %}
+        <ul class="result-list groups-list">
+          {% for group in groups %}
+            <li class="group-item">
+              <a href="{% url 'groups:detail' group.pk %}" class="result-link group-link">
+                <div class="group-icon">
+                  {% if group.icon %}
+                    <img src="{{ group.icon.url }}" alt="{{ group.name }}">
+                  {% else %}
+                    👥
+                  {% endif %}
+                </div>
+                <div class="group-info">
+                  <strong>{{ group.name }}</strong>
+                  {% if group.description %}
+                  <span class="group-description">{{ group.description|truncatewords:20 }}</span>
+                  {% endif %}
+                  <span class="group-meta">
+                    {{ group.member_count }} membre{{ group.member_count|pluralize }} 
+                    • 
+                    {% if group.visibility == 'public' %}🌐 Public{% elif group.visibility == 'private' %}🔒 Privé{% else %}🔐 Sur invitation{% endif %}
+                  </span>
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <p class="no-results">Aucun groupe trouvé.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Publications Section -->
+    <section class="result-section">
+      <h2>📚 Publications trouvées ({{ publications.count }})</h2>
+      {% if publications %}
+        <ul class="result-list publications-list">
+          {% for pub in publications %}
+            <li class="publication-item">
+              <a href="{% url 'publications:detail' pub.pk %}" class="result-link publication-link">
+                <div class="publication-icon">📄</div>
+                <div class="publication-info">
+                  <strong>{{ pub.title }}</strong>
+                  
+                  <!-- Abstract Preview -->
+                  {% if pub.abstract %}
+                  <span class="publication-abstract">{{ pub.abstract|truncatewords:25 }}</span>
+                  {% endif %}
+                  
+                  <!-- Authors -->
+                  <span class="publication-meta">
+                    {% if pub.authors.all %}
+                      👤 Par {{ pub.authors.first.get_full_name|default:pub.authors.first.username }}
+                      {% if pub.authors.count > 1 %}
+                        et {{ pub.authors.count|add:"-1" }} autre{{ pub.authors.count|add:"-1"|pluralize }}
+                      {% endif %}
+                    {% endif %}
+                    {% if pub.publication_date %}
+                      • 📅 {{ pub.publication_date|date:"Y" }}
+                    {% endif %}
+                    {% if pub.journal %}
+                      • 📰 {{ pub.journal }}
+                    {% endif %}
+                  </span>
+                  
+                  <!-- Keywords -->
+                   {% if pub.keyword_list %}
+                  <div class="publication-keywords">
+                    {% for keyword in pub.keyword_list %}
+                      <span class="keyword-tag">🏷️ {{ keyword }}</span>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📚</div>
+          <p class="no-results">Aucune publication trouvée.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Call to Action for Guest Users -->
+    {% if not user.is_authenticated and query %}
+    <div class="guest-cta">
+      <h3>💡 Créez un compte pour plus de fonctionnalités</h3>
+      <p>Rejoignez notre communauté académique pour accéder à toutes les publications, rejoindre des groupes et collaborer avec d'autres chercheurs.</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'users:signup' %}" class="btn-primary">✨ S'inscrire gratuitement</a>
+        <a href="{% url 'users:login' %}" class="btn-secondary">🔑 Se connecter</a>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  <style>
+    .search-results {
+      max-width: 900px;
+      margin: 2rem auto 4rem auto;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #2c3e50;
+    }
+    .search-results h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .highlight {
+      color: #667eea;
+      font-weight: 700;
+    }
+
+    /* Result Sections */
+    .result-section {
+      margin-bottom: 3rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    .result-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 0.5rem;
+      color: #34495e;
+    }
+
+    /* Lists */
+    .result-list {
+      list-style: none;
+      padding-left: 0;
+      display: grid;
+      gap: 1rem;
+    }
+
+    /* User Items */
+    .user-item {
+      margin-bottom: 0;
+    }
+    .user-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      border: 1px solid #e0e0e0;
+    }
+    .user-link:hover {
+      background-color: #f8f9fa;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+      transform: translateX(4px);
+    }
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e0e0e0;
+    }
+    .user-avatar-fallback {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+    .user-info strong {
+      font-size: 1.1rem;
+      color: #2c3e50;
+    }
+    .username {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
+    .institution {
+      font-size: 0.85rem;
+      color: #95a5a6;
+    }
+    .bio {
+      font-size: 0.85rem;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+
+    /* Group Items */
+    .group-item {
+      margin-bottom: 0;
+    }
+    .group-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      border: 1px solid #e0e0e0;
+    }
+    .group-link:hover {
+      background-color: #f8f9fa;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+      transform: translateX(4px);
+    }
+    .group-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+    .group-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .group-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+    .group-info strong {
+      font-size: 1.1rem;
+      color: #2c3e50;
+    }
+    .group-description {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
+    .group-meta {
+      font-size: 0.85rem;
+      color: #7f8c8d;
+    }
+
+    /* Publication Items */
+    .publication-item {
+      margin-bottom: 0;
+    }
+    .publication-link {
+      display: flex;
+      align-items: start;
+      gap: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      border: 1px solid #e0e0e0;
+    }
+    .publication-link:hover {
+      background-color: #f8f9fa;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+      transform: translateX(4px);
+    }
+    .publication-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #28a745, #20c997);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+    .publication-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+    }
+    .publication-info strong {
+      font-size: 1.1rem;
+      color: #2c3e50;
+      line-height: 1.4;
+    }
+    .publication-abstract {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      line-height: 1.5;
+    }
+    .publication-meta {
+      font-size: 0.85rem;
+      color: #7f8c8d;
+    }
+    .publication-keywords {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+    .keyword-tag {
+      background: #f0f4f8;
+      color: #667eea;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* Common Link Styling */
+    .result-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Empty States */
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+    }
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+    .no-results {
+      font-style: italic;
+      color: #7f8c8d;
+      margin: 0;
+    }
+
+    /* Guest CTA */
+    .guest-cta {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      margin-top: 2rem;
+    }
+    .guest-cta h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1.5rem;
+    }
+    .guest-cta p {
+      margin: 0 0 1.5rem 0;
+      opacity: 0.9;
+    }
+    .btn-primary, .btn-secondary {
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+    .btn-primary:hover {
+      background: #f0f4f8;
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid white;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .search-results {
+        margin: 1rem;
+      }
+      .search-results h1 {
+        font-size: 1.5rem;
+      }
+      .result-section {
+        padding: 1rem;
+      }
+      .result-section h2 {
+        font-size: 1.25rem;
+      }
+      .user-avatar, .user-avatar-fallback {
+        width: 40px;
+        height: 40px;
+      }
+      .group-icon, .publication-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+      }
+      .publication-keywords {
+        display: none;
+      }
+    }
+  </style>
+{% endblock %}

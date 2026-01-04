@@ -1,0 +1,416 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ group.name }} - Plateforme Sociale{% endblock %}
+
+{% block content %}
+<div class="group-detail-container">
+  <!-- GROUP HEADER -->
+  <header class="group-header">
+    <div class="cover-image">
+      {% if group.cover_image %}
+        <img src="{{ group.cover_image.url }}" alt="{{ group.name }}">
+      {% else %}
+        <div class="default-cover">👥</div>
+      {% endif %}
+    </div>
+    <div class="group-info">
+      <h1>{{ group.name }}</h1>
+      <p>Créé par <a href="{% url 'users:profile' group.creator.pk %}">{{ group.creator.full_name|default:group.creator.username }}</a></p>
+      {% if is_admin %}
+        <span class="admin-badge">👑 Administrateur</span>
+      {% endif %}
+    </div>
+    <div class="group-actions">
+      {% if is_member %}
+        <a href="{% url 'groups:chat' group.id %}" class="btn btn-primary">💬 Accéder au chat</a>
+        <a href="{% url 'groups:leave' group.id %}" onclick="return confirm('Êtes-vous sûr de vouloir quitter ce groupe?')" class="btn btn-danger">🚪 Quitter le groupe</a>
+        {% if is_admin %}
+          <a href="{% url 'groups:admin' group.id %}" class="btn btn-secondary">⚙️ Administration</a>
+        {% endif %}
+      {% else %}
+        {% if group.visibility == 'private' %}
+          {% if invitation_sent %}
+            <div class="invitation-pending">⏳ Demande en attente</div>
+          {% else %}
+            <a href="{% url 'groups:request_invite' group.id %}" class="btn btn-primary">📧 Demander une invitation</a>
+          {% endif %}
+        {% elif group.visibility == 'invite_only' %}
+          <div class="invitation-only">🔐 Groupe sur invitation uniquement</div>
+        {% else %}
+          <a href="{% url 'groups:join' group.id %}" class="btn btn-success">➕ Rejoindre le groupe</a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <a href="#posts" class="tab active" data-tab="posts">📝 Posts</a>
+    <a href="#members" class="tab" data-tab="members">👥 Membres</a>
+    <a href="#about" class="tab" data-tab="about">ℹ️ À propos</a>
+  </div>
+
+  <!-- TAB CONTENT -->
+  <div class="tab-content active" id="posts">
+    {% if is_member %}
+      {% if posts %}
+        <div class="posts-grid">
+          {% for post in posts %}
+            <div class="post-card">
+              <div class="post-card-header">
+                {% if post.author.profile_picture %}
+                  <img src="{{ post.author.profile_picture.url }}" alt="{{ post.author.username }}" class="author-avatar">
+                {% else %}
+                  <div class="default-avatar">{{ post.author.username|first|upper }}</div>
+                {% endif %}
+                <div>
+                  <a href="{% url 'users:profile' post.author.pk %}">{{ post.author.full_name|default:post.author.username }}</a>
+                  <p>{{ post.created_at|date:"d M Y à H:i" }}</p>
+                </div>
+              </div>
+              <p>{{ post.content }}</p>
+              {% if post.image %}
+                <img src="{{ post.image.url }}" alt="Post image" class="post-image">
+              {% endif %}
+              <div class="post-card-footer">
+                <span>👍 {{ post.like_count }}</span>
+                <span>💬 {{ post.comment_count }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">📝</div>
+          <p>Aucun post dans ce groupe pour le moment.</p>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">🔒</div>
+        <p>Rejoignez le groupe pour voir les posts.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="tab-content" id="members">
+    <div class="members-grid">
+      {% for member in members %}
+        <a href="{% url 'users:profile' member.pk %}" class="member-card">
+          {% if member.profile_picture %}
+            <img src="{{ member.profile_picture.url }}" alt="{{ member.username }}" class="member-avatar">
+          {% else %}
+            <div class="default-avatar">{{ member.username|first|upper }}</div>
+          {% endif %}
+          <p>{{ member.full_name|default:member.username }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="tab-content" id="about">
+    <p>{{ group.description }}</p>
+    <div class="group-stats">
+      <div>
+        <div>{{ group.member_count }}</div>
+        <div>👥 Membres</div>
+      </div>
+      <div>
+        <div>{{ posts|length }}</div>
+        <div>📝 Posts</div>
+      </div>
+      <div>
+        <div>
+          {% if group.visibility == 'public' %}
+            🌐 Public
+          {% elif group.visibility == 'private' %}
+            🔒 Privé
+          {% else %}
+            🔐 Sur invitation
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* General */
+  .group-detail-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  .btn-primary { background: linear-gradient(90deg, #667eea, #764ba2); color: white; }
+  .btn-danger { background: #e74c3c; color: white; border: none; }
+  .btn-success { background: linear-gradient(90deg, #28a745, #20c997); color: white; }
+  .btn-secondary { background: #f0f4f8; color: #667eea; }
+
+  /* Header */
+  .group-header {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+  }
+  
+  .cover-image img, .default-cover {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+  
+  .default-cover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: white;
+  }
+  
+  .group-info {
+    padding: 1.5rem;
+  }
+  
+  .group-info h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    color: #2c3e50;
+  }
+  
+  .group-info p {
+    color: #7f8c8d;
+    margin: 0.5rem 0 0 0;
+  }
+  
+  .group-info a {
+    color: #667eea;
+    text-decoration: none;
+  }
+  
+  .admin-badge {
+    background: #667eea;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  
+  .group-actions {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e8ecf0;
+  }
+  
+  .tab {
+    padding: 1rem;
+    color: #7f8c8d;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+  }
+  
+  .tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+  }
+  
+  /* Tab Content */
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  /* Posts */
+  .posts-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+  
+  .post-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    padding: 1.5rem;
+  }
+  
+  .post-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .author-avatar, .default-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  .default-avatar {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+  }
+
+  .post-card-header a {
+    color: #2c3e50;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  
+  .post-card-header p {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+    margin: 0;
+  }
+  
+  .post-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+  
+  .post-card-footer {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    border-top: 1px solid #ecf0f1;
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+  
+  /* Members */
+  .members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .member-card {
+    text-align: center;
+    text-decoration: none;
+    color: #2c3e50;
+  }
+  
+  .member-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* About */
+  .group-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .group-stats > div {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border-left: 4px solid #667eea;
+  }
+  
+  .group-stats > div > div:first-child {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #667eea;
+  }
+  
+  .group-stats > div > div:last-child {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+  }
+  
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+  }
+  
+  .empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function(event) {
+        event.preventDefault();
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        const target = this.getAttribute('data-tab');
+        
+        tabContents.forEach(content => {
+          if (content.id === target) {
+            content.classList.add('active');
+          } else {
+            content.classList.remove('active');
+          }
+        });
+        
+        window.location.hash = target;
+      });
+    });
+    
+    // Activate tab based on hash
+    if(window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      const tab = document.querySelector(`.tab[data-tab="${hash}"]`);
+      if(tab) {
+        tab.click();
+      }
+    }
+  });
+</script>
+{% endblock %}

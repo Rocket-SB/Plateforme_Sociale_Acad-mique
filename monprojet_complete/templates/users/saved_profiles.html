@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profils sauvegardés - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 class="card-title">Mes profils sauvegardés</h1>
+        <a href="{% url 'users:profile' user.pk %}" class="btn btn-secondary">Mon profil</a>
+    </div>
+    
+    {% if saved_profiles %}
+    <div style="display: grid; gap: 1.5rem; margin-top: 1.5rem;">
+        {% for saved_user in saved_profiles %}
+        <div style="padding: 1.5rem; border: 1px solid #e0e0e0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                {% if saved_user.profile_picture %}
+                <img src="{{ saved_user.profile_picture.url }}" alt="{{ saved_user.username }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: #667eea; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5rem;">
+                    {{ saved_user.username|first|upper }}
+                </div>
+                {% endif %}
+                <div>
+                    <a href="{% url 'users:profile' saved_user.pk %}" style="text-decoration: none; color: inherit;">
+                        <h3 style="margin-bottom: 0.5rem;">{{ saved_user.full_name|default:saved_user.username }}</h3>
+                    </a>
+                    <p style="color: #777; margin-bottom: 0.25rem;">@{{ saved_user.username }}</p>
+                    {% if saved_user.institution %}
+                    <p style="color: #555; margin-bottom: 0.25rem; font-size: 0.9rem;">
+                        <strong>{{ saved_user.institution }}</strong>
+                        {% if saved_user.department %}- {{ saved_user.department }}{% endif %}
+                    </p>
+                    {% endif %}
+                    {% if saved_user.bio %}
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">{{ saved_user.bio|truncatewords:20 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+                <a href="{% url 'users:profile' saved_user.pk %}" class="btn btn-success" style="font-size: 0.9rem;">Voir le profil</a>
+                <a href="{% url 'users:unsave_profile' saved_user.pk %}" class="btn btn-secondary" style="font-size: 0.9rem;">Retirer</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem;">
+        <p style="color: #777; font-size: 1.1rem; margin-bottom: 1rem;">Aucun profil sauvegardé</p>
+        <p style="color: #999;">Vous pouvez sauvegarder des profils en cliquant sur "Sauvegarder le profil" sur les pages de profil des autres utilisateurs.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer le post - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Supprimer le post</h1>
+    </div>
+    
+    <div style="padding: 1.5rem;">
+        <p style="font-size: 1.1rem; margin-bottom: 1rem;">Êtes-vous sûr de vouloir supprimer ce post ?</p>
+        
+        <div style="padding: 1rem; background: #f8f9fa; border-radius: 6px; margin-bottom: 2rem;">
+            <p style="color: #555; margin: 0;">{{ post.content|truncatewords:30 }}</p>
+        </div>
+        
+        <p style="color: #dc3545; font-weight: 600; margin-bottom: 2rem;">
+            ⚠️ Cette action est irréversible !
+        </p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+                <a href="{% url 'posts:detail' post.pk %}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

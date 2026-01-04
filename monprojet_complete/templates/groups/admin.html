@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}⚙️ Administration - {{ group.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1 style="margin: 0; font-size: 2rem; color: #2c3e50;">⚙️ Administration du groupe {{ group.name }}</h1>
+    <a href="{% url 'groups:detail' group.id %}" style="background: #667eea; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+      🔙 Retour
+    </a>
+  </div>
+  <!-- In the admin header, after the title -->
+<div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+  
+  {% if group.visibility == 'invite_only' %}
+  <a href="{% url 'groups:send_invite' group.id %}" style="background: #28a745; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+    📧 Inviter des utilisateurs
+  </a>
+  {% endif %}
+</div>
+
+
+  <!-- Pending Invitations Section -->
+  <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <h2 style="margin: 0 0 1.5rem 0; font-size: 1.5rem; color: #2c3e50; border-bottom: 3px solid #ffc107; padding-bottom: 0.5rem;">
+      📧 Demandes d'invitation en attente ({{ pending_invites.count }})
+    </h2>
+
+    {% if pending_invites %}
+    <div style="display: grid; gap: 1rem;">
+      {% for invite in pending_invites %}
+      <div style="padding: 1.25rem; border: 1px solid #ffc107; border-radius: 8px; background: #fffbf0; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong style="color: #2c3e50; font-size: 1.1rem;">{{ invite.invitee.full_name|default:invite.invitee.username }}</strong>
+          <p style="color: #7f8c8d; margin: 0.25rem 0 0 0; font-size: 0.9rem;">@{{ invite.invitee.username }}</p>
+          <p style="color: #95a5a6; margin: 0.25rem 0 0 0; font-size: 0.85rem;">
+            📅 Demandé le {{ invite.created_at|date:"d M Y à H:i" }}
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <form action="{% url 'groups:accept_invite' invite.id %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">
+              ✅ Accepter
+            </button>
+          </form>
+          <form action="{% url 'groups:decline_invite' invite.id %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">
+              ❌ Refuser
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #7f8c8d; text-align: center; padding: 2rem 0;">Aucune demande d'invitation en attente.</p>
+    {% endif %}
+  </div>
+
+  <!-- Members Section -->
+  <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <h2 style="margin: 0 0 1.5rem 0; font-size: 1.5rem; color: #2c3e50; border-bottom: 3px solid #667eea; padding-bottom: 0.5rem;">
+      👥 Membres ({{ memberships.count }})
+    </h2>
+
+    {% if memberships %}
+    <div style="display: grid; gap: 1rem;">
+      {% for membership in memberships %}
+      <div style="padding: 1.25rem; border: 1px solid #e8ecf0; border-radius: 8px; background: white; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          {% if membership.user.profile_picture %}
+          <img src="{{ membership.user.profile_picture.url }}" alt="{{ membership.user.username }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+          {% else %}
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+            {{ membership.user.username|first|upper }}
+          </div>
+          {% endif %}
+          <div>
+            <a href="{% url 'users:profile' membership.user.pk %}" style="text-decoration: none; color: #2c3e50;">
+              <strong style="font-size: 1.05rem;">{{ membership.user.full_name|default:membership.user.username }}</strong>
+            </a>
+            <p style="color: #7f8c8d; margin: 0.25rem 0 0 0; font-size: 0.9rem;">@{{ membership.user.username }}</p>
+            <span style="display: inline-block; background: {% if membership.role == 'admin' %}#667eea{% elif membership.role == 'moderator' %}#ffc107{% else %}#e8ecf0{% endif %}; color: {% if membership.role == 'admin' %}white{% elif membership.role == 'moderator' %}#333{% else %}#666{% endif %}; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-top: 0.25rem;">
+              {{ membership.get_role_display }}
+            </span>
+          </div>
+        </div>
+        <div>
+          {% if membership.user.id != group.creator.id %}
+          <form action="{% url 'groups:remove_member' group.id membership.user.id %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" onclick="return confirm('Êtes-vous sûr de vouloir retirer ce membre?')" style="background: #fdecea; color: #c62828; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;">
+              🗑️ Retirer
+            </button>
+          </form>
+          {% else %}
+          <span style="background: #f0f4f8; color: #7f8c8d; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">
+            👑 Créateur
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #7f8c8d; text-align: center; padding: 2rem 0;">Aucun membre pour le moment.</p>
+    {% endif %}
+  </div>
+
+  <!-- Posts Section -->
+  <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <h2 style="margin: 0 0 1.5rem 0; font-size: 1.5rem; color: #2c3e50; border-bottom: 3px solid #28a745; padding-bottom: 0.5rem;">
+      📝 Posts ({{ posts.count }})
+    </h2>
+
+    {% if posts %}
+    <div style="display: grid; gap: 1rem;">
+      {% for post in posts %}
+      <div style="padding: 1.25rem; border: 1px solid #e8ecf0; border-radius: 8px; background: white;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+          <div>
+            <a href="{% url 'users:profile' post.author.pk %}" style="text-decoration: none; color: #2c3e50;">
+              <strong>{{ post.author.full_name|default:post.author.username }}</strong>
+            </a>
+            <p style="color: #7f8c8d; margin: 0.25rem 0 0 0; font-size: 0.9rem;">{{ post.created_at|date:"d M Y à H:i" }}</p>
+          </div>
+          <form action="{% url 'groups:post_delete' post.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce post?')" style="background: #fdecea; color: #c62828; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+              🗑️ Supprimer
+            </button>
+          </form>
+        </div>
+        <p style="color: #555; line-height: 1.6;">{{ post.content|truncatewords:50 }}</p>
+        <div style="display: flex; gap: 1.5rem; font-size: 0.9rem; color: #7f8c8d; margin-top: 1rem;">
+          <span>👍 {{ post.like_count }}</span>
+          <span>💬 {{ post.comment_count }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #7f8c8d; text-align: center; padding: 2rem 0;">Aucun post publié.</p>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+</style>
+{% endblock %}

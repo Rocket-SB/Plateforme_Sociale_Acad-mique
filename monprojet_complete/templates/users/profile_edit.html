@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier mon profil - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Modifier mon profil</h1>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="profile_picture">Photo de profil</label>
+            <input type="file" id="profile_picture" name="profile_picture" class="form-control" accept="image/*">
+            {% if user.profile_picture %}
+            <small style="display: block; margin-top: 0.5rem;">Photo actuelle: <a href="{{ user.profile_picture.url }}" target="_blank">Voir</a></small>
+            {% endif %}
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="first_name">Prénom</label>
+                <input type="text" id="first_name" name="first_name" class="form-control" value="{{ user.first_name }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="last_name">Nom</label>
+                <input type="text" id="last_name" name="last_name" class="form-control" value="{{ user.last_name }}">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="bio">Biographie</label>
+            <textarea id="bio" name="bio" class="form-control" rows="4">{{ user.bio }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="institution">Institution</label>
+            <input type="text" id="institution" name="institution" class="form-control" value="{{ user.institution }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="department">Département</label>
+            <input type="text" id="department" name="department" class="form-control" value="{{ user.department }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="research_interests">Intérêts de recherche</label>
+            <textarea id="research_interests" name="research_interests" class="form-control" rows="3">{{ user.research_interests }}</textarea>
+            <small style="color: #777;">Séparez les intérêts par des virgules</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="website">Site web</label>
+            <input type="url" id="website" name="website" class="form-control" value="{{ user.website }}" placeholder="https://example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="orcid_id">ORCID ID</label>
+            <input type="text" id="orcid_id" name="orcid_id" class="form-control" value="{{ user.orcid_id }}" placeholder="0000-0000-0000-0000">
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-success">Enregistrer les modifications</button>
+            <a href="{% url 'users:profile' user.pk %}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

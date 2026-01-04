@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 2rem auto;">
+    <div class="card-header">
+        <h1 class="card-title">Créer un compte</h1>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">Nom d'utilisateur *</label>
+            <input type="text" id="username" name="username" class="form-control" required autofocus>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="first_name">Prénom</label>
+                <input type="text" id="first_name" name="first_name" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="last_name">Nom</label>
+                <input type="text" id="last_name" name="last_name" class="form-control">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="password1">Mot de passe *</label>
+            <input type="password" id="password1" name="password1" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password2">Confirmer le mot de passe *</label>
+            <input type="password" id="password2" name="password2" class="form-control" required>
+        </div>
+        
+        <button type="submit" class="btn btn-success" style="width: 100%;">S'inscrire</button>
+    </form>
+    
+    <div style="margin-top: 1.5rem; text-align: center;">
+        <p>Déjà un compte? <a href="{% url 'users:login' %}">Se connecter</a></p>
+    </div>
+</div>
+{% endblock %}
+

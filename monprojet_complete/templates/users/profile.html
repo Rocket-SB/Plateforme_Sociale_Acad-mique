@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profil de {{ profile_user.username }} - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="profile-header">
+        {% if profile_user.profile_picture %}
+        <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.username }}" class="profile-avatar">
+        {% else %}
+        <img src="{% static 'img/default-avatar.png' %}" alt="Avatar par défaut" class="profile-avatar" onerror="this.src='https://ui-avatars.com/api/?name={{ profile_user.username }}&size=150'">
+        {% endif %}
+
+        <div class="card" style="margin-top: 2rem;">
+    <h2>Publications</h2>
+    <p><strong>Total de publications :</strong> {{ publications.count }}</p>
+    <p><strong>Total de lectures (vues) :</strong> {{ total_reads }}</p>
+    <p><strong>Total de citations :</strong> {{ total_citations }}</p>
+
+    <h3>Publications récentes</h3>
+    <ul>
+        {% for pub in publications|slice:":5" %}
+        <li>
+            <a href="{% url 'publications:detail' pub.pk %}">{{ pub.title }}</a>
+            — Vues: {{ pub.view_count }} | Citations: {{ pub.citation_count }}
+        </li>
+        {% empty %}
+        <li>Aucune publication.</li>
+        {% endfor %}
+    </ul>
+</div>
+        
+        <div class="profile-info" style="flex: 1;">
+            <h1>{{ profile_user.full_name|default:profile_user.username }}</h1>
+            <p style="color: #777; margin-bottom: 0.5rem;">@{{ profile_user.username }}</p>
+            
+            {% if profile_user.institution %}
+            <p style="color: #555; margin-bottom: 0.5rem;">
+                <strong>{{ profile_user.institution }}</strong>
+                {% if profile_user.department %}- {{ profile_user.department }}{% endif %}
+            </p>
+            {% endif %}
+            
+            {% if profile_user.bio %}
+            <p style="margin-top: 1rem; color: #555;">{{ profile_user.bio }}</p>
+            {% endif %}
+            
+            {% if is_own_profile %}
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <a href="{% url 'users:profile_edit' %}" class="btn btn-secondary">Modifier mon profil</a>
+                <a href="{% url 'users:saved_profiles' %}" class="btn btn-secondary">Mes profils sauvegardés</a>
+            </div>
+            {% else %}
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                {% if is_following %}
+                <a href="{% url 'users:unfollow' profile_user.pk %}" class="btn btn-secondary">Ne plus suivre</a>
+                {% else %}
+                <a href="{% url 'users:follow' profile_user.pk %}" class="btn btn-success">Suivre</a>
+                {% endif %}
+                
+                {% if is_saved %}
+                <a href="{% url 'users:unsave_profile' profile_user.pk %}" class="btn btn-secondary">Retirer des sauvegardes</a>
+                {% else %}
+                <a href="{% url 'users:save_profile' profile_user.pk %}" class="btn btn-secondary">Sauvegarder le profil</a>
+                {% endif %}
+                
+                <a href="{% url 'messaging:new' profile_user.pk %}" class="btn btn-secondary">Envoyer un message</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="profile-stats">
+        <div class="stat-item">
+            <div class="stat-number">{{ profile_user.followers.count }}</div>
+            <div class="stat-label">Abonnés</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ profile_user.following.count }}</div>
+            <div class="stat-label">Abonnements</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ profile_user.authored_publications.count }}</div>
+            <div class="stat-label">Publications</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ profile_user.posts.count }}</div>
+            <div class="stat-label">Posts</div>
+        </div>
+    </div>
+</div>
+
+{% if suggested_users and not is_own_profile %}
+<div class="card">
+    <h2 style="margin-bottom: 1rem;">Suggestions de personnes à suivre</h2>
+    <div style="display: grid; gap: 1rem;">
+        {% for suggested_user in suggested_users %}
+        <div style="padding: 1rem; border: 1px solid #e0e0e0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                {% if suggested_user.profile_picture %}
+                <img src="{{ suggested_user.profile_picture.url }}" alt="{{ suggested_user.username }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #667eea; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                    {{ suggested_user.username|first|upper }}
+                </div>
+                {% endif %}
+                <div>
+                    <a href="{% url 'users:profile' suggested_user.pk %}" style="text-decoration: none; color: inherit;">
+                        <strong>{{ suggested_user.full_name|default:suggested_user.username }}</strong>
+                    </a>
+                    <p style="color: #777; font-size: 0.9rem; margin: 0.25rem 0 0 0;">@{{ suggested_user.username }}</p>
+                    {% if suggested_user.institution %}
+                    <p style="color: #999; font-size: 0.85rem; margin: 0.25rem 0 0 0;">{{ suggested_user.institution }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                {% if suggested_user.is_followed_by_current_user %}
+                <span class="btn btn-secondary" style="font-size: 0.85rem;">Déjà suivi</span>
+                {% else %}
+                <a href="{% url 'users:follow' suggested_user.pk %}" class="btn btn-success" style="font-size: 0.85rem;">Suivre</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if profile_user.research_interests %}
+<div class="card">
+    <h2>Intérêts de recherche</h2>
+    <p style="color: #555;">{{ profile_user.research_interests }}</p>
+</div>
+{% endif %}
+
+{% if profile_user.website or profile_user.orcid_id %}
+<div class="card">
+    <h2>Liens</h2>
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        {% if profile_user.website %}
+        <a href="{{ profile_user.website }}" target="_blank" rel="noopener">{{ profile_user.website }}</a>
+        {% endif %}
+        {% if profile_user.orcid_id %}
+        <a href="https://orcid.org/{{ profile_user.orcid_id }}" target="_blank" rel="noopener">
+            ORCID: {{ profile_user.orcid_id }}
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

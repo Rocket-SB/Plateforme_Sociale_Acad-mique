@@ -1,0 +1,13 @@
+certifi>=2024.6.16
+channels>=4.0.0
+channels_redis>=4.2.0
+daphne>=4.1.2
+Django>=5.0.0,<6.0.0
+django-jazzmin>=2.6.0
+django-simple-history>=3.5.0
+mysql-connector-python>=9.5.0
+Pillow>=10.0.0
+pymongo>=4.0.0
+neo4j>=6.0.3
+python-dotenv>=1.0.0
+faker

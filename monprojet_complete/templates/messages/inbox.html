@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="inbox-container">
+    <div class="inbox-header">
+        <h1 class="card-title">Messages</h1>
+        <a href="{% url 'messaging:user_list' %}" class="btn btn-success new-message-btn">
+            Nouveau message
+        </a>
+    </div>
+
+    <div class="inbox-chat-list">
+        {% if conversations_data %}
+            {% for data in conversations_data %}
+            <a href="{% url 'messaging:conversation' data.conversation.id %}" class="inbox-chat-item {% if data.unread_count > 0 %}unread{% endif %}">
+                <div class="chat-avatar">
+                    {% if data.other_participant.profile_picture %}
+                        <img src="{{ data.other_participant.profile_picture.url }}" alt="{{ data.other_participant.username }}">
+                    {% else %}
+                        <div class="avatar-fallback">
+                            {{ data.other_participant.username|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="chat-details">
+                    <div class="chat-title">
+                        <strong>{{ data.other_participant.full_name|default:data.other_participant.username }}</strong>
+                        <span class="chat-timestamp">{{ data.conversation.updated_at|date:"H:i" }}</span>
+                    </div>
+                    <div class="chat-last-message">
+                        {% if data.last_message %}
+                            <p>{{ data.last_message.content|truncatewords:10 }}</p>
+                        {% endif %}
+                        {% if data.unread_count > 0 %}
+                            <span class="unread-badge">{{ data.unread_count }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 4rem 2rem; margin: auto;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
+                <h3 style="color: #555; margin-bottom: 0.5rem;">Aucune conversation</h3>
+                <p style="color: #777;">Vous n'avez pas encore de conversations. Commencez-en une nouvelle !</p>
+                <a href="{% url 'messaging:user_list' %}" class="btn btn-primary" style="margin-top: 1rem;">Trouver des utilisateurs</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.inbox-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.inbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: #00a884; /* WhatsApp Green */
+    color: white;
+    flex-shrink: 0;
+}
+
+.inbox-header .card-title {
+    color: white;
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.new-message-btn {
+    background-color: #075e54 !important; /* Darker WhatsApp Green */
+    border: none;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    color: white !important;
+}
+
+.inbox-chat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.inbox-chat-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.3s;
+}
+
+.inbox-chat-item:hover {
+    background-color: #f5f5f5;
+}
+
+.inbox-chat-item.unread .chat-last-message {
+    font-weight: bold;
+    color: #333;
+}
+
+.chat-avatar {
+    margin-right: 1rem;
+}
+
+.chat-avatar img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-avatar .avatar-fallback {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.chat-details {
+    flex: 1;
+    overflow: hidden;
+}
+
+.chat-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.chat-title strong {
+    font-size: 1rem;
+}
+
+.chat-timestamp {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.inbox-chat-item.unread .chat-timestamp {
+    color: #25d366;
+    font-weight: bold;
+}
+
+.chat-last-message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.chat-last-message p {
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.unread-badge {
+    background-color: #25d366; /* WhatsApp Notification Green */
+    color: white;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 12px;
+    min-width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+
+</style>
+{% endblock %}

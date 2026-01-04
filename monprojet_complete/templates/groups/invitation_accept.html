@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Accepter une invitation - {{ group.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; margin-top: 4rem;">
+  <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+    
+    <h1 style="margin: 0 0 0.5rem 0; font-size: 1.8rem; color: #2c3e50;">Vous avez été invité!</h1>
+    
+    <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+      <h2 style="margin: 0 0 1rem 0; font-size: 1.5rem;">{{ group.name }}</h2>
+      <p style="margin: 0; font-size: 1.1rem; opacity: 0.9;">
+        Vous êtes invité à rejoindre ce groupe
+      </p>
+      {% if group.description %}
+      <p style="margin: 1rem 0 0 0; font-size: 0.95rem; opacity: 0.8;">
+        {{ group.description }}
+      </p>
+      {% endif %}
+    </div>
+
+    <div style="display: grid; gap: 1rem; margin-top: 2rem;">
+      <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+        <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">{{ group.member_count }}</div>
+        <div style="color: #7f8c8d; font-size: 0.9rem;">Membres</div>
+      </div>
+    </div>
+
+    <form method="post" style="margin-top: 2rem;">
+      {% csrf_token %}
+      <div style="display: flex; gap: 1rem;">
+        <button type="submit" style="flex: 1; background: linear-gradient(90deg, #28a745, #20c997); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.3s ease;">
+          ✅ Accepter l'invitation
+        </button>
+        <a href="{% url 'groups:list' %}" style="flex: 1; background: #6c757d; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; transition: all 0.3s ease; font-size: 1rem;">
+          ❌ Refuser
+        </a>
+      </div>
+    </form>
+
+    <p style="color: #7f8c8d; margin-top: 2rem; font-size: 0.9rem;">
+      Invité par: <strong>{{ invitation.invited_by.get_full_name|default:invitation.invited_by.username }}</strong>
+    </p>
+  </div>
+</div>
+
+<style>
+  button:hover, a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+</style>
+{% endblock %}

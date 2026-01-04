@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer un groupe - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Créer un nouveau groupe</h1>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="name">Nom du groupe *</label>
+            <input type="text" id="name" name="name" class="form-control" required autofocus>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" class="form-control" rows="4"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="visibility">Visibilité</label>
+            <select id="visibility" name="visibility" class="form-control">
+                <option value="public">Public - Tous peuvent voir et rejoindre</option>
+                <option value="private">Privé - Visible mais invitation requise</option>
+                <option value="invite_only">Sur invitation uniquement - Non visible publiquement</option>
+            </select>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="cover_image">Image de couverture</label>
+                <input type="file" id="cover_image" name="cover_image" class="form-control" accept="image/*">
+            </div>
+            
+            <div class="form-group">
+                <label for="icon">Icône du groupe</label>
+                <input type="file" id="icon" name="icon" class="form-control" accept="image/*">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-success">Créer le groupe</button>
+            <a href="{% url 'groups:list' %}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

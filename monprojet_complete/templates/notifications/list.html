@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - Plateforme Sociale Académique{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 class="card-title">
+            Mes notifications
+            {% if unread_count > 0 %}
+            <span style="background: #dc3545; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.9rem; margin-left: 1rem;">
+                {{ unread_count }} non lue{{ unread_count|pluralize }}
+            </span>
+            {% endif %}
+        </h1>
+        {% if unread_count > 0 %}
+        <a href="{% url 'notifications:mark_all_read' %}" class="btn btn-secondary">Tout marquer comme lu</a>
+        {% endif %}
+    </div>
+    
+    {% if all_notifications %}
+    <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+        {% for notification in all_notifications %}
+        <div style="padding: 1.5rem; border: 1px solid {% if not notification.is_read %}#667eea{% else %}#e0e0e0{% endif %}; border-radius: 8px; background: {% if not notification.is_read %}#e3f2fd{% else %}white{% endif %}; border-left-width: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <strong style="color: #2c3e50;">{{ notification.title }}</strong>
+                        {% if not notification.is_read %}
+                        <span style="background: #667eea; width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>
+                        {% endif %}
+                    </div>
+                    <p style="color: #555; margin-bottom: 0.5rem;">{{ notification.message }}</p>
+                    <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: #777;">
+                        {% if notification.sender %}
+                        <span>De: <a href="{% url 'users:profile' notification.sender.pk %}" style="color: #667eea;">{{ notification.sender.full_name|default:notification.sender.username }}</a></span>
+                        {% endif %}
+                        <span>{{ notification.created_at|date:"d M Y à H:i" }}</span>
+                        <span style="background: #f0f0f0; padding: 0.25rem 0.5rem; border-radius: 12px;">
+                            {{ notification.get_notification_type_display }}
+                        </span>
+                    </div>
+                </div>
+                {% if not notification.is_read %}
+                <div style="margin-left: 1rem;">
+                    <a href="{% url 'notifications:mark_read' notification.id %}" class="btn btn-secondary" style="font-size: 0.85rem;">Marquer comme lu</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem;">
+        <p style="color: #777; font-size: 1.1rem; margin-bottom: 1rem;">Aucune notification</p>
+        <p style="color: #999;">Vous serez notifié lorsque vous recevrez de nouveaux messages, likes, commentaires, etc.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

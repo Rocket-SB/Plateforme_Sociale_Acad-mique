@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Invitations en attente - {{ group.name }}{% endblock %}
+
+{% block content %}
+<h1>Invitations en attente pour {{ group.name }}</h1>
+
+{% if invitations %}
+  <ul>
+    {% for invite in invitations %}
+      <li style="margin-bottom: 1rem;">
+        {{ invite.email }}
+
+        <form action="{% url 'groups:accept_invitation' invite.id %}" method="post" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success btn-sm">Accepter</button>
+        </form>
+
+        <form action="{% url 'groups:decline_invitation' invite.id %}" method="post" style="display:inline; margin-left: 1rem;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">Refuser</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Aucune invitation en attente.</p>
+{% endif %}
+
+<a href="{% url 'groups:detail' group.id %}" class="btn btn-secondary" style="margin-top: 20px;">Retour au groupe</a>
+{% endblock %}

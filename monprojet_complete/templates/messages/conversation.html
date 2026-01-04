@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+
+{% block title %}Conversation avec {{ other_participant.username }} - Plateforme Sociale Académique{% endblock %}
+
+{% block main_container %}
+<div class="chat-container">
+    <div class="chat-header">
+        <a href="{% url 'messaging:inbox' %}" class="back-button">&larr;</a>
+        <div class="chat-avatar">
+             {% if other_participant.profile_picture %}
+                <img src="{{ other_participant.profile_picture.url }}" alt="{{ other_participant.username }}">
+            {% else %}
+                <div class="avatar-fallback">
+                    {{ other_participant.username|first|upper }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="chat-contact-info">
+            <strong>{{ other_participant.full_name|default:other_participant.username }}</strong>
+            <span>En ligne</span>
+        </div>
+    </div>
+    
+    <div id="chat-log" class="chat-messages">
+        {% for msg in messages %}
+        <div class="message-bubble-wrapper {% if msg.sender == user %}sent{% else %}received{% endif %}">
+            <div class="message-bubble">
+                {% if msg.file %}
+                <a href="{{ msg.file.url }}" target="_blank"><img src="{{ msg.file.url }}" class="message-image" /></a>
+                {% endif %}
+                {% if msg.content %}
+                <div class="message-content">{{ msg.content }}</div>
+                {% endif %}
+                <div class="message-timestamp">{{ msg.created_at|date:"H:i" }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="empty-chat-message">C'est le début de votre conversation. Envoyez un message pour commencer !</p>
+        {% endfor %}
+    </div>
+    
+    <form id="chat-form" method="post" class="chat-form">
+        {% csrf_token %}
+        <input type="file" id="chat-file-input" style="display: none;" accept="image/*">
+        <button type="button" id="attach-file-btn" class="btn attach-button">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M16.5 6V17.5C16.5 19.71 14.71 21.5 12.5 21.5C10.29 21.5 8.5 19.71 8.5 17.5V5C8.5 3.62 9.62 2.5 11 2.5C12.38 2.5 13.5 3.62 13.5 5V15.5C13.5 16.05 13.05 16.5 12.5 16.5C11.95 16.5 11.5 16.05 11.5 15.5V6H10V15.5C10 16.88 11.12 18 12.5 18C13.88 18 15 16.88 15 15.5V5C15 2.79 13.21 1 11 1C8.79 1 7 2.79 7 5V17.5C7 20.54 9.46 23 12.5 23C15.54 23 18 20.54 18 17.5V6H16.5Z"></path></svg>
+        </button>
+        <div id="file-preview-container" style="display: none; position: relative; margin-left: 5px;">
+            <img id="file-preview" src="" style="height: 40px; width: auto; border-radius: 5px;" />
+            <button type="button" id="remove-file-btn" class="remove-file-btn">&times;</button>
+        </div>
+        <input type="text" id="chat-message-input" name="content" class="form-control" placeholder="Tapez votre message..." autocomplete="off">
+        <button id="chat-message-submit" type="submit" class="btn btn-success send-button">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+        </button>
+    </form>
+</div>
+
+{{ conversation.id|json_script:"conversation-id" }}
+{{ user.id|json_script:"user-id" }}
+{{ other_participant.username|json_script:"other-participant-username" }}
+
+<style>
+.navbar { margin-bottom: 0 !important; }
+.footer { display: none; }
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    background-color: #e5ddd5; /* WhatsApp background color */
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: #00a884;
+    color: white;
+    flex-shrink: 0;
+}
+
+.back-button {
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+    text-decoration: none;
+}
+
+.chat-avatar img, .chat-avatar .avatar-fallback {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-avatar .avatar-fallback {
+    background-color: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.chat-contact-info {
+    margin-left: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-contact-info strong {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.chat-contact-info span {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.message-bubble-wrapper {
+    display: flex;
+    margin-bottom: 0.75rem;
+    max-width: 75%;
+}
+
+.message-bubble-wrapper.sent {
+    align-self: flex-end;
+}
+
+.message-bubble-wrapper.received {
+    align-self: flex-start;
+}
+
+.message-bubble {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+.message-image {
+    max-width: 100%;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.message-bubble-wrapper.sent .message-bubble {
+    background-color: #dcf8c6; /* WhatsApp sent message color */
+}
+
+.message-bubble-wrapper.received .message-bubble {
+    background-color: #ffffff;
+}
+
+.message-content {
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+.message-timestamp {
+    font-size: 0.7rem;
+    color: #888;
+    text-align: right;
+}
+
+.empty-chat-message {
+    text-align: center;
+    color: #777;
+    margin: auto;
+    background-color: #fcf3c5;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.chat-form {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: #f0f0f0;
+    flex-shrink: 0;
+}
+
+.chat-form .form-control {
+    flex: 1;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    padding: 0.75rem 1.25rem;
+}
+
+.attach-button, .send-button {
+    background-color: transparent;
+    color: #555;
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+}
+.attach-button:hover, .send-button:hover {
+    background-color: #ddd;
+}
+.send-button {
+    color: #00a884;
+}
+.remove-file-btn {
+    position: absolute;
+    top: -5px;
+    right: 0px;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    font-size: 10px;
+    line-height: 15px;
+    text-align: center;
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const conversationId = JSON.parse(document.getElementById('conversation-id').textContent);
+    const userId = JSON.parse(document.getElementById('user-id').textContent);
+    const otherParticipantUsername = JSON.parse(document.getElementById('other-participant-username').textContent);
+    const chatLog = document.querySelector('#chat-log');
+    let fileData = null;
+    let fileName = null;
+
+    // Scroll to the bottom of the chat log on page load
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/chat/'
+        + conversationId
+        + '/'
+    );
+
+    function createMessageElement(message, file_url, senderId, createdAt) {
+        const messageWrapper = document.createElement('div');
+        messageWrapper.classList.add('message-bubble-wrapper');
+        
+        const messageBubble = document.createElement('div');
+        messageBubble.classList.add('message-bubble');
+
+        if (file_url) {
+            const imgLink = document.createElement('a');
+            imgLink.href = file_url;
+            imgLink.target = '_blank';
+            const img = document.createElement('img');
+            img.src = file_url;
+            img.classList.add('message-image');
+            imgLink.appendChild(img);
+            messageBubble.appendChild(imgLink);
+        }
+
+        if (message) {
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+            messageContent.textContent = message;
+            messageBubble.appendChild(messageContent);
+        }
+
+        const messageTimestamp = document.createElement('div');
+        messageTimestamp.classList.add('message-timestamp');
+        const messageDate = new Date(createdAt);
+        messageTimestamp.textContent = `${messageDate.getHours().toString().padStart(2, '0')}:${messageDate.getMinutes().toString().padStart(2, '0')}`;
+
+        if (senderId === userId) {
+            messageWrapper.classList.add('sent');
+        } else {
+            messageWrapper.classList.add('received');
+        }
+
+        messageBubble.appendChild(messageTimestamp);
+        messageWrapper.appendChild(messageBubble);
+
+        return messageWrapper;
+    }
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        
+        const emptyMessage = chatLog.querySelector('.empty-chat-message');
+        if (emptyMessage) {
+            emptyMessage.remove();
+        }
+
+        const messageElement = createMessageElement(data.message, data.file_url, data.sender_id, data.created_at);
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#attach-file-btn').addEventListener('click', function() {
+        document.querySelector('#chat-file-input').click();
+    });
+
+    document.querySelector('#chat-file-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            fileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fileData = e.target.result;
+                document.querySelector('#file-preview').src = fileData;
+                document.querySelector('#file-preview-container').style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.querySelector('#remove-file-btn').addEventListener('click', function() {
+        fileData = null;
+        fileName = null;
+        document.querySelector('#chat-file-input').value = '';
+        document.querySelector('#file-preview-container').style.display = 'none';
+    });
+
+    document.querySelector('#chat-form').onsubmit = function(e) {
+        e.preventDefault();
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+
+        if (message.trim() === '' && !fileData) return;
+
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'sender_id': userId,
+            'file': fileData,
+            'filename': fileName
+        }));
+        messageInputDom.value = '';
+        document.querySelector('#remove-file-btn').click();
+    };
+</script>
+{% endblock %}

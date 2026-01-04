@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat du groupe {{ group.name }}{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+  <div class="chat-header">
+    <h2>{{ group.name }}</h2>
+    <a href="{% url 'groups:detail' group.id %}" class="btn btn-secondary">Retour au groupe</a>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    {% for message in chat_messages %}
+      <div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
+        <div class="message-sender">{{ message.sender.get_full_name|default:message.sender.username }}</div>
+        <div class="message-content">{{ message.content }}</div>
+        <div class="message-time">{{ message.created_at|date:"H:i" }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  <form class="chat-form" id="chat-form">
+    <input type="text" id="chat-message-input" placeholder="Écrire un message...">
+    <button type="submit" class="btn btn-primary">Envoyer</button>
+  </form>
+</div>
+
+<style>
+  .chat-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+  }
+
+  .chat-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e8ecf0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chat-header h2 {
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  .chat-messages {
+    flex-grow: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+
+  .message {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    max-width: 70%;
+  }
+
+  .message.sent {
+    align-self: flex-end;
+    align-items: flex-end;
+  }
+
+  .message.received {
+    align-self: flex-start;
+    align-items: flex-start;
+  }
+
+  .message-sender {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+  }
+
+  .message-content {
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    line-height: 1.5;
+  }
+
+  .message.sent .message-content {
+    background: #667eea;
+    color: white;
+    border-top-right-radius: 4px;
+  }
+
+  .message.received .message-content {
+    background: #f0f4f8;
+    color: #2c3e50;
+    border-top-left-radius: 4px;
+  }
+
+  .message-time {
+    font-size: 0.75rem;
+    color: #95a5a6;
+    margin-top: 0.25rem;
+  }
+
+  .chat-form {
+    padding: 1.5rem;
+    border-top: 1px solid #e8ecf0;
+    display: flex;
+    gap: 1rem;
+  }
+
+  #chat-message-input {
+    flex-grow: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #dcdfe6;
+    font-size: 1rem;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const groupId = {{ group.id }};
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/groups/'
+        + groupId
+        + '/chat/'
+    );
+
+    const chatMessages = document.getElementById('chat-messages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const messageElement = document.createElement('div');
+        const senderElement = document.createElement('div');
+        const contentElement = document.createElement('div');
+        const timeElement = document.createElement('div');
+
+        messageElement.classList.add('message');
+        if (data.sender_id === {{ user.id }}) {
+            messageElement.classList.add('sent');
+        } else {
+            messageElement.classList.add('received');
+        }
+        
+        senderElement.classList.add('message-sender');
+        senderElement.textContent = data.sender;
+        
+        contentElement.classList.add('message-content');
+        contentElement.textContent = data.message;
+        
+        timeElement.classList.add('message-time');
+        timeElement.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        messageElement.appendChild(senderElement);
+        messageElement.appendChild(contentElement);
+        messageElement.appendChild(timeElement);
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.getElementById('chat-form').onsubmit = function(e) {
+        e.preventDefault();
+        const messageInputDom = document.getElementById('chat-message-input');
+        const message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+            'message': message
+        }));
+        messageInputDom.value = '';
+    };
+  });
+</script>
+{% endblock %}
